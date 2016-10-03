@@ -29,10 +29,38 @@ public class ConnectionPool{
         else return false;
     }
 
-    public void getMap() {
+    public int getSize() {
+        return connectionToClientMap.size();
     }
 
     public ConnectionPool() {
         this.connectionToClientMap = new ConcurrentHashMap<>(10, 0.8f);
+        new ConnectionKiller();
+    }
+
+
+
+    class ConnectionKiller {
+        public ConnectionKiller() {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+                        for (Map.Entry<Integer, ConnectionToClient> integerConnectionToClientEntry : connectionToClientMap.entrySet()) {
+                            if(!integerConnectionToClientEntry.getValue().isRunned())
+                                System.out.println("killing situation");
+                            remove(integerConnectionToClientEntry.getKey());
+                        }
+//                    System.out.println("killer is worked!!");
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+        }
     }
 }
+

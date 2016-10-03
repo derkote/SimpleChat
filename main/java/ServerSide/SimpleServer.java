@@ -15,7 +15,7 @@ public class SimpleServer {
     private int countOfClients;
     private int idid;
     private PropertiesInternetConnection properties;
-    private volatile Map<Integer, ConnectionToClient> connectionToClientMap;
+    private ConnectionPool connectionToClientMap;
 
     public static ConnectionToClient getConnectionById(int id) {
         ConnectionToClient result = null;
@@ -45,7 +45,7 @@ public class SimpleServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        connectionToClientMap = new HashMap<Integer, ConnectionToClient>(10, 0.8F);
+        connectionToClientMap = new ConnectionPool();
     }
 
     protected boolean addClient() throws IOException {
@@ -68,13 +68,17 @@ public class SimpleServer {
         startAdderNewConnection();
     }
 
+
     private void startKillerDeadConnectionToClient() {
         System.err.println("startKiller");
         new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true) {
-                    for (Map.Entry<Integer, ConnectionToClient> integerConnectionToClientEntry : connectionToClientMap.entrySet()) {
+                    for (int i = 0; i < connectionToClientMap.getSize(); i++) {
+
+                    }
+                    /*for (Map.Entry<Integer, ConnectionToClient> integerConnectionToClientEntry : connectionToClientMap.entrySet()) {
                         if(!integerConnectionToClientEntry.getValue().isRunned())
                             System.out.println("killing situation");
                             killConnection(integerConnectionToClientEntry.getKey());
@@ -85,7 +89,7 @@ public class SimpleServer {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
+*/
                 }
             }
         }).start();
