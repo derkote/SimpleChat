@@ -1,10 +1,7 @@
 package ServerSide;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.ServerSocket;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by derkote on 16.09.2016.
@@ -45,7 +42,7 @@ public class SimpleServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        connectionToClientMap = new ConnectionPool();
+        connectionToClientMap = ConnectionPool.getInstance();
     }
 
     protected boolean addClient() throws IOException {
@@ -75,7 +72,7 @@ public class SimpleServer {
             @Override
             public void run() {
                 while (true) {
-                    for (int i = 0; i < connectionToClientMap.getSize(); i++) {
+                    for (int i = 0; i < connectionToClientMap.size(); i++) {
 
                     }
                     /*for (Map.Entry<Integer, ConnectionToClient> integerConnectionToClientEntry : connectionToClientMap.entrySet()) {

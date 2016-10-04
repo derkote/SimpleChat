@@ -9,6 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ConnectionPool{
     private Map<Integer, ConnectionToClient> connectionToClientMap;
+    private static ConnectionPool ourInstance = new ConnectionPool();
+
+    public static ConnectionPool getInstance() {
+        return ourInstance;
+    }
 
     public boolean put(int id, ConnectionToClient connetion) {
         connectionToClientMap.put(id, connetion);
@@ -29,13 +34,19 @@ public class ConnectionPool{
         else return false;
     }
 
-    public int getSize() {
+    public int size() {
         return connectionToClientMap.size();
     }
 
-    public ConnectionPool() {
+    private ConnectionPool() {
         this.connectionToClientMap = new ConcurrentHashMap<>(10, 0.8f);
         new ConnectionKiller();
+    }
+
+    public void sendMessageToAll(String message) {
+        for (ConnectionToClient client : connectionToClientMap.values()) {
+            client.sendMessage(message);
+        }
     }
 
 
@@ -62,5 +73,11 @@ public class ConnectionPool{
             }).start();
         }
     }
+
+    class ConnectionAdder{
+
+    }
+
+
 }
 

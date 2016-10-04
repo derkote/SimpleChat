@@ -16,6 +16,8 @@ public class ConnectionToClient implements Runnable {
     private Socket socket;
     private int id;
     private boolean runned = false;
+    private InputStream inputStream;
+    private OutputStream outputStream;
 
     public int getId() {
         return id;
@@ -41,8 +43,8 @@ public class ConnectionToClient implements Runnable {
 
         System.err.println("get Message" + " " + socket);
         try {
-            InputStream inputStream = socket.getInputStream();
-            OutputStream outputStream = socket.getOutputStream();
+            inputStream = socket.getInputStream();
+            outputStream = socket.getOutputStream();
             Scanner inputScanner = new Scanner(inputStream);
             PrintWriter outputWriter = new PrintWriter(outputStream, true);
 
@@ -61,12 +63,13 @@ public class ConnectionToClient implements Runnable {
                 tempMessage = inputScanner.nextLine();
 
                 System.out.println("Echo: " + tempMessage);
-                outputWriter.println("Echo: " + tempMessage);
-
+//                outputWriter.println("Echo: " + tempMessage);
+//                отправляем не одному в ответ, а всем
                 if (tempMessage.trim().equalsIgnoreCase("exit")) {
                     isMessagetail = true;
                     runned = false;
                 }
+                ConnectionPool.getInstance().sendMessageToAll("Echo: " + tempMessage);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -81,6 +84,7 @@ public class ConnectionToClient implements Runnable {
     }
 
     public void sendMessage(String message) {
-
+        PrintWriter outputWriter = new PrintWriter(outputStream, true);
+        outputWriter.println(message);
     }
 }
