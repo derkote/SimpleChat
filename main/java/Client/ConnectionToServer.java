@@ -17,9 +17,11 @@ public class ConnectionToServer implements Runnable {
     private InputStream input;
     private OutputStream out;
     private volatile String message;
+    private Account account;
 
-    public ConnectionToServer() {
+    public ConnectionToServer(Account account) {
         properties = new PropertiesInternetConnection();
+        this.account = account;
 //        createStreams();
 
     }
@@ -38,11 +40,11 @@ public class ConnectionToServer implements Runnable {
 
         while (true) {
             if (in.hasNextLine())
-            sendMessage(in.nextLine());
+                sendMessage(in.nextLine());
 //            message = getMessage();
-            try{
+            try {
                 Thread.sleep(20);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 System.err.println("Не может заснуть поток");
                 e.printStackTrace();
             }
@@ -64,9 +66,9 @@ public class ConnectionToServer implements Runnable {
         StringBuilder result = new StringBuilder();
         if (r.hasNextLine()) {
             result.append(r.nextLine());
-            try{
+            try {
                 Thread.sleep(20);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 System.err.println("Не может заснуть поток");
                 e.printStackTrace();
             }
@@ -75,18 +77,19 @@ public class ConnectionToServer implements Runnable {
     }
 
     private void createStreams() {
-        try{
-            socket  = new Socket(properties.getInetAddress(), properties.getServerInternetPort());
+        try {
+            socket = new Socket(properties.getInetAddress(), properties.getServerInternetPort());
             this.input = socket.getInputStream();
             this.out = socket.getOutputStream();
+
             System.out.println("Потоки клиента создались успешно");
         } catch (IOException e) {
             System.out.println("Потоки клиента не создались");
             e.printStackTrace();
 
         }
-    }
 
+    }
 
 
 }

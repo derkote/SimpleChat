@@ -33,7 +33,7 @@ public class MessagePool {
         int length = messagePool.size();
         System.out.println(messagePool.size());
         for (int i = 10; i > 0; i--) {
-            temp[10-i] = messagePool.get(length-i);
+            temp[10 - i] = messagePool.get(length - i);
         }
         return temp;
     }

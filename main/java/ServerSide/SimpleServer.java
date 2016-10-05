@@ -19,10 +19,10 @@ public class SimpleServer {
         try {
 
             result = (ConnectionToClient) SimpleServer.class.getField("connectionToClientMap").get(id);
-        }catch (NoSuchFieldException e) {
+        } catch (NoSuchFieldException e) {
             System.err.println("Dont find connectionToClientMap");
             e.printStackTrace();
-        }catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             System.err.println("Access denied");
             e.printStackTrace();
         }
@@ -56,7 +56,7 @@ public class SimpleServer {
             countOfClients++;
             new Thread(tempConnection).start();
             return true;
-        }else return false;
+        } else return false;
     }
 
     public void start() throws IOException {

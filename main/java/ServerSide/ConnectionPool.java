@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by derkote on 04.10.2016.
  */
-public class ConnectionPool{
+public class ConnectionPool {
     private Map<Integer, ConnectionToClient> connectionToClientMap;
     private static ConnectionPool ourInstance = new ConnectionPool();
 
@@ -44,13 +44,13 @@ public class ConnectionPool{
     }
 
     public void sendMessageToAll(String message) {
-        for (ConnectionToClient client : connectionToClientMap.values()) {System.out.println("Into iter");
+        for (ConnectionToClient client : connectionToClientMap.values()) {
+            System.out.println("Into iter");
             client.sendMessage(message);
 
         }
 
     }
-
 
 
     class ConnectionKiller {
@@ -60,7 +60,7 @@ public class ConnectionPool{
                 public void run() {
                     while (true) {
                         for (Map.Entry<Integer, ConnectionToClient> integerConnectionToClientEntry : connectionToClientMap.entrySet()) {
-                            if(!integerConnectionToClientEntry.getValue().isRunned()) {
+                            if (!integerConnectionToClientEntry.getValue().isRunned()) {
                                 System.out.println("killing situation");
                                 remove(integerConnectionToClientEntry.getKey());
                             }
@@ -77,8 +77,6 @@ public class ConnectionPool{
             }).start();
         }
     }
-
-
 
 
 }

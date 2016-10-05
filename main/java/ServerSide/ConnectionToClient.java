@@ -23,6 +23,7 @@ public class ConnectionToClient implements Runnable {
     public int getId() {
         return id;
     }
+
     public boolean isRunned() {
         return runned;
     }
@@ -34,11 +35,11 @@ public class ConnectionToClient implements Runnable {
             socket = this.serverSocket.accept();
             System.err.println("Create new connection id:" + id);
             runned = true;
-        }catch (IOException e) {
+        } catch (IOException e) {
 
         }
-    } 
-    
+    }
+
     @Override
     public void run() {
 
