@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -48,6 +49,11 @@ public class ConnectionToClient implements Runnable {
             Scanner inputScanner = new Scanner(inputStream);
             PrintWriter outputWriter = new PrintWriter(outputStream, true);
 
+            System.out.println("Отправляем последние десять сообщений");
+            String[] lastTenMessage = MessagePool.getInstance().getLast();
+            for (int i = 0; i < lastTenMessage.length; i++) {
+                outputWriter.println(lastTenMessage[i]);
+            }
             outputWriter.println("Hi! Please enter a message. Enter 'exit' to exit");
 
                 /*
@@ -63,6 +69,7 @@ public class ConnectionToClient implements Runnable {
                 tempMessage = inputScanner.nextLine();
 
                 System.out.println("Echo: " + tempMessage);
+                MessagePool.getInstance().addMessage(tempMessage);
                 ConnectionPool.getInstance().sendMessageToAll("Echo: " + tempMessage);
 //                outputWriter.println("Echo: " + tempMessage);
 //                отправляем не одному в ответ, а всем
