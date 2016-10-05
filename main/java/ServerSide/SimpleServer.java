@@ -100,8 +100,12 @@ public class SimpleServer {
 
     private void startAdderNewConnection() {
         System.err.println("startAdder");
+        try {
+            addClient();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         while (true) {
-            System.err.println("startAdder into while");
             if (countOfClients == connectionToClientMap.size()) {
                 try {
                     addClient();
@@ -110,7 +114,6 @@ public class SimpleServer {
                     System.out.println("adder error 2");
                 }
             }
-            System.out.println("adder is worked!!");
         }
     }
 

@@ -63,13 +63,15 @@ public class ConnectionToClient implements Runnable {
                 tempMessage = inputScanner.nextLine();
 
                 System.out.println("Echo: " + tempMessage);
+                ConnectionPool.getInstance().sendMessageToAll("Echo: " + tempMessage);
 //                outputWriter.println("Echo: " + tempMessage);
 //                отправляем не одному в ответ, а всем
                 if (tempMessage.trim().equalsIgnoreCase("exit")) {
                     isMessagetail = true;
                     runned = false;
                 }
-                ConnectionPool.getInstance().sendMessageToAll("Echo: " + tempMessage);
+                System.out.println("sendMEssageToAll");
+
             }
         } catch (IOException e) {
             e.printStackTrace();

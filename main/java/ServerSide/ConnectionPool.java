@@ -44,9 +44,11 @@ public class ConnectionPool{
     }
 
     public void sendMessageToAll(String message) {
-        for (ConnectionToClient client : connectionToClientMap.values()) {
+        for (ConnectionToClient client : connectionToClientMap.values()) {System.out.println("Into iter");
             client.sendMessage(message);
+
         }
+
     }
 
 
@@ -58,9 +60,11 @@ public class ConnectionPool{
                 public void run() {
                     while (true) {
                         for (Map.Entry<Integer, ConnectionToClient> integerConnectionToClientEntry : connectionToClientMap.entrySet()) {
-                            if(!integerConnectionToClientEntry.getValue().isRunned())
+                            if(!integerConnectionToClientEntry.getValue().isRunned()) {
                                 System.out.println("killing situation");
-                            remove(integerConnectionToClientEntry.getKey());
+                                remove(integerConnectionToClientEntry.getKey());
+                            }
+
                         }
 //                    System.out.println("killer is worked!!");
                         try {
@@ -74,9 +78,7 @@ public class ConnectionPool{
         }
     }
 
-    class ConnectionAdder{
 
-    }
 
 
 }
