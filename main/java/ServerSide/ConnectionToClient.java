@@ -1,35 +1,47 @@
 package ServerSide;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import Client.Account;
+import ServerSide.Message.AbstractMessage;
+import ServerSide.Message.ClientMessage;
+
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  * Created by derkote on 16.09.2016.
  */
-public class ConnectionToClient implements Runnable {
+public class ConnectionToClient<M> implements Runnable {
     private ServerSocket serverSocket;
     private Socket socket;
     private int id;
     private boolean runned = false;
-    private InputStream inputStream;
-    private OutputStream outputStream;
+    private ObjectInputStream inputStream;
+    private ObjectOutputStream outputStream;
+    private MessagePool messagePool;
 
     public int getId() {
         return id;
     }
 
     public boolean isRunned() {
+        /*try {
+            if (isRunned()) {
+                if (inputStream.available() < 1000000)
+                    return true;
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;*/
         return runned;
     }
 
     public ConnectionToClient(ServerSocket serverSocket, int id) {
         this.serverSocket = serverSocket;
+        this.messagePool = MessagePool.getInstance();
         this.id = id + 1;
         try {
             socket = this.serverSocket.accept();
@@ -45,42 +57,61 @@ public class ConnectionToClient implements Runnable {
 
         System.err.println("get Message" + " " + socket);
         try {
-            inputStream = socket.getInputStream();
-            outputStream = socket.getOutputStream();
-            Scanner inputScanner = new Scanner(inputStream);
-            PrintWriter outputWriter = new PrintWriter(outputStream, true);
+            InputStream is = socket.getInputStream();
+            OutputStream os = socket.getOutputStream();
+            try {
+                inputStream = new ObjectInputStream(is);
+                outputStream = new ObjectOutputStream(os);
+            } catch (EOFException e) {
+                e.printStackTrace();
+            }
+
+            /*Scanner inputScanner = new Scanner(inputStream);
+            PrintWriter outputWriter = new PrintWriter(outputStream, true);*/
 
             System.out.println("Отправляем последние десять сообщений");
-            String[] lastTenMessage = MessagePool.getInstance().getLast();
-            for (int i = 0; i < lastTenMessage.length; i++) {
-                outputWriter.println(lastTenMessage[i]);
+            ArrayList<M> lastTenMessage = messagePool.getLast();
+            for (int i = 0; i < lastTenMessage.size(); i++) {
+                sendMessage(lastTenMessage.get(i));
             }
-            outputWriter.println("Hi! Please enter a message. Enter 'exit' to exit");
-
+            Account acc = new Account();
+            acc.setNickName("Server");
+            sendMessage((M) new ClientMessage(acc, "Hi! Please enter a message. Enter 'exit' to exit"));
                 /*
                 * Избавляемся от "мусорной" информации
                 * */
-            byte[] b = new byte[100];
-            inputStream.read(b);
-            System.out.println(b);
+            /*byte[] b = new byte[100];
+            //b[1] = inputStream.readByte();\
+            is.read(b);
+            System.out.println(b);*/
+
 
             boolean isMessagetail = false;
-            String tempMessage = "";
-            while (!isMessagetail && inputScanner.hasNextLine()) {
-                tempMessage = inputScanner.nextLine();
+            ClientMessage tempMessage = null;
+            //ХУЙ ЗНАЕТ РАБОТАЕТ ЛИ?
 
-                System.out.println("Echo: " + tempMessage);
-                MessagePool.getInstance().addMessage(tempMessage);
-                ConnectionPool.getInstance().sendMessageToAll("Echo: " + tempMessage);
+//            while (!isMessagetail && inputStream.available()>0) {
+                while (!isMessagetail) {
+                    try {
+                        tempMessage = (ClientMessage) inputStream.readObject();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    System.out.println(tempMessage.getNickname() + ": " + tempMessage);
+                    messagePool.addMessage(tempMessage);
+                    tempMessage.setMessage("Echo: " + tempMessage.getMessage());
+                    ConnectionPool.getInstance().sendMessageToAll(tempMessage);
 //                outputWriter.println("Echo: " + tempMessage);
 //                отправляем не одному в ответ, а всем
-                if (tempMessage.trim().equalsIgnoreCase("exit")) {
-                    isMessagetail = true;
-                    runned = false;
-                }
-                System.out.println("sendMEssageToAll");
+                    if (tempMessage.getMessage().trim().equalsIgnoreCase("exit")) {
+                        isMessagetail = true;
+                        runned = false;
+                    }
+                    System.out.println("sendMEssageToAll");
 
-            }
+                }
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -89,6 +120,7 @@ public class ConnectionToClient implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            runned = false;
             System.err.println("Connection with client are closed");
         }
     }
@@ -96,5 +128,16 @@ public class ConnectionToClient implements Runnable {
     public void sendMessage(String message) {
         PrintWriter outputWriter = new PrintWriter(outputStream, true);
         outputWriter.println(message);
+    }
+
+    public void sendMessage(M message) {
+        System.out.println(outputStream);
+        try {
+            outputStream.writeObject(message);
+            outputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Не можем отправить сообщение");
+        }
     }
 }

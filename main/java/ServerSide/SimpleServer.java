@@ -1,5 +1,7 @@
 package ServerSide;
 
+import ServerSide.Message.ClientMessage;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 
@@ -48,7 +50,7 @@ public class SimpleServer {
     protected boolean addClient() throws IOException {
         System.err.println("addClient");
         idid++;
-        ConnectionToClient tempConnection = new ConnectionToClient(socket, idid);
+        ConnectionToClient<ClientMessage> tempConnection = new ConnectionToClient(socket, idid);
         System.out.println(tempConnection);
         if (tempConnection.isRunned()) {
             System.err.println("addClient - isRunned");
@@ -117,10 +119,7 @@ public class SimpleServer {
         }
     }
 
-    /*public void sendMessageById(int id, String message) {
-        ConnectionToClient c = getConnectionById(id);
-        c.sendMessage(message);
-    }*/
+
 
 }
 

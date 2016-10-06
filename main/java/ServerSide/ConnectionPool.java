@@ -1,5 +1,8 @@
 package ServerSide;
 
+import ServerSide.Message.AbstractMessage;
+import ServerSide.Message.ClientMessage;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -7,15 +10,15 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by derkote on 04.10.2016.
  */
-public class ConnectionPool {
-    private Map<Integer, ConnectionToClient> connectionToClientMap;
-    private static ConnectionPool ourInstance = new ConnectionPool();
+public class ConnectionPool<M> {
+    private volatile Map<Integer, ConnectionToClient> connectionToClientMap;
+    private static ConnectionPool ourInstance = new ConnectionPool<ClientMessage>();
 
-    public static ConnectionPool getInstance() {
+    public static synchronized ConnectionPool getInstance() {
         return ourInstance;
     }
 
-    public boolean put(int id, ConnectionToClient connetion) {
+    public synchronized boolean put(int id, ConnectionToClient connetion) {
         connectionToClientMap.put(id, connetion);
         return connectionToClientMap.containsKey(id);
     }
@@ -26,7 +29,7 @@ public class ConnectionPool {
         else return null;
     }
 
-    public boolean remove(int id) {
+    public synchronized boolean remove(int id) {
         if (connectionToClientMap.containsKey(id))
             connectionToClientMap.remove(id);
         if (!connectionToClientMap.containsKey(id))
@@ -43,14 +46,15 @@ public class ConnectionPool {
         new ConnectionKiller();
     }
 
-    public void sendMessageToAll(String message) {
+    public synchronized void sendMessageToAll(M message) {
+        System.out.println(connectionToClientMap.size());
         for (ConnectionToClient client : connectionToClientMap.values()) {
-            System.out.println("Into iter");
             client.sendMessage(message);
 
         }
 
     }
+
 
 
     class ConnectionKiller {
