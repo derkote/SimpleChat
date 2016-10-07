@@ -49,6 +49,7 @@ public class ConnectionPool<M> {
     public synchronized void sendMessageToAll(M message) {
         System.out.println(connectionToClientMap.size());
         for (ConnectionToClient client : connectionToClientMap.values()) {
+            System.out.println(client);
             client.sendMessage(message);
 
         }

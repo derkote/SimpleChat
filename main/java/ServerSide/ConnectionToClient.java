@@ -97,18 +97,20 @@ public class ConnectionToClient<M> implements Runnable {
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-
-                    System.out.println(tempMessage.getNickname() + ": " + tempMessage);
-                    messagePool.addMessage(tempMessage);
-                    tempMessage.setMessage("Echo: " + tempMessage.getMessage());
-                    ConnectionPool.getInstance().sendMessageToAll(tempMessage);
-//                outputWriter.println("Echo: " + tempMessage);
-//                отправляем не одному в ответ, а всем
                     if (tempMessage.getMessage().trim().equalsIgnoreCase("exit")) {
+                        System.out.println("Приняли команду на выход");
                         isMessagetail = true;
                         runned = false;
                     }
+
+                    System.out.println(tempMessage.getNickname() + ": " + tempMessage);
+                    messagePool.addMessage(tempMessage);
+                    tempMessage.setMessage(tempMessage.getMessage());
+                    ConnectionPool.getInstance().sendMessageToAll(tempMessage);
+//                outputWriter.println("Echo: " + tempMessage);
+//                отправляем не одному в ответ, а всем
                     System.out.println("sendMEssageToAll");
+
 
                 }
 
@@ -131,7 +133,6 @@ public class ConnectionToClient<M> implements Runnable {
     }
 
     public void sendMessage(M message) {
-        System.out.println(outputStream);
         try {
             outputStream.writeObject(message);
             outputStream.flush();

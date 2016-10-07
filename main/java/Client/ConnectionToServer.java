@@ -30,29 +30,45 @@ public class ConnectionToServer implements Runnable {
         createStreams();
         System.out.println("Waiting for you message");
         //Читаем ввод пользователя
-        Scanner in = new Scanner(System.in);
 
-        while (true) {
-            //Пока вводят текст оборачиваем его в ClientMessage и отправляем на сервер
-            ClientMessage tempMessage;
-            if (in.hasNextLine()) {
-                tempMessage = new ClientMessage(this.account, in.nextLine());
-                sendMessage(tempMessage);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    Scanner in = new Scanner(System.in);
+                    ClientMessage tempMessage;
+                    if (in.hasNextLine()) {
+                        tempMessage = new ClientMessage(account, in.nextLine());
+                        sendMessage(tempMessage);
+                    }
+                }
             }
-            tempMessage = getMessage();
-            if (tempMessage != null) {
-                printMessage(tempMessage);
-            }else System.out.println("нет входящих байт");
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    ClientMessage tempMessage = null;
+                    try {
+                        tempMessage = (ClientMessage) objIn.readObject();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    printMessage(tempMessage);
+
+                }
+
             }
-        }
+        }).start();
+
     }
 
     public void printMessage(ClientMessage message) {
-        System.out.println(message.getMessage());
+        System.out.println(message.getNickname() + ": " + message.getMessage());
     }
 
     public void sendMessage(ClientMessage message) {
@@ -70,11 +86,9 @@ public class ConnectionToServer implements Runnable {
         ClientMessage temp;
         System.err.println("into getMessage");
         try {
-            if (objIn.available() > 0) {
-                System.err.println("into IF!!!!");
-                temp = (ClientMessage) objIn.readObject();
-                return temp;
-            }
+            temp = (ClientMessage) objIn.readObject();
+            return temp;
+
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("ошибочка с созданием потока чтения объекта");
