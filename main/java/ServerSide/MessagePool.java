@@ -1,14 +1,9 @@
 package ServerSide;
 
-import Client.Account;
-import ServerSide.Message.AbstractMessage;
-import ServerSide.Message.ClientMessage;
+import ServerSide.Message.Message;
 
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Stream;
 
 /**
  * Created by derkote on 05.10.2016.
@@ -16,7 +11,7 @@ import java.util.stream.Stream;
 public class MessagePool<M> {
     private volatile ArrayList<M> messagePool;
 
-    private static MessagePool ourInstance = new MessagePool<ClientMessage>();
+    private static MessagePool ourInstance = new MessagePool<Message>();
 
     public static synchronized MessagePool getInstance() {
         return ourInstance;
@@ -24,11 +19,11 @@ public class MessagePool<M> {
 
     private MessagePool() {
         messagePool = new ArrayList<>(20);
-        for (int i = 0; i < 10; i++) {
+        /*for (int i = 0; i < 10; i++) {
             Account acc = new Account();
             acc.setNickName("Server");
-            messagePool.add(i,  (M) new ClientMessage(acc, String.valueOf(i)));
-        }
+            messagePool.add(i,  (M) new Message(acc, String.valueOf(i)));
+        }*/
     }
 
     public int size() {

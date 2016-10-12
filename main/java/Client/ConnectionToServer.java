@@ -1,7 +1,8 @@
 package Client;
 
-import ServerSide.Message.ClientMessage;
-import ServerSide.PropertiesInternetConnection;
+import ServerSide.Message.Message;
+import ServerSide.Properties;
+import org.jdom2.JDOMException;
 
 import java.io.*;
 import java.net.Socket;
@@ -11,7 +12,7 @@ import java.util.Scanner;
  * Created by derkote on 17.09.2016.
  */
 public class ConnectionToServer implements Runnable {
-    private PropertiesInternetConnection properties;
+    private Properties properties;
     private Socket socket;
     private InputStream input;
     private OutputStream out;
@@ -19,8 +20,8 @@ public class ConnectionToServer implements Runnable {
     private ObjectOutputStream objOut;
     private Account account;
 
-    public ConnectionToServer(Account account) {
-        properties = new PropertiesInternetConnection();
+    public ConnectionToServer(Account account) throws IOException, JDOMException {
+        properties = new Properties();
         this.account = account;
     }
 
@@ -28,6 +29,13 @@ public class ConnectionToServer implements Runnable {
     public void run() {
         //Создаем потоки ввода\вывода
         createStreams();
+
+        /*try {
+            objOut.writeObject(account);
+            objOut.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
         System.out.println("Waiting for you message");
         //Читаем ввод пользователя
 
@@ -37,9 +45,9 @@ public class ConnectionToServer implements Runnable {
             public void run() {
                 while (true) {
                     Scanner in = new Scanner(System.in);
-                    ClientMessage tempMessage;
+                    Message tempMessage;
                     if (in.hasNextLine()) {
-                        tempMessage = new ClientMessage(account, in.nextLine());
+                        tempMessage = new Message(account, in.nextLine(), Message.MessageType.CLIENT);
                         sendMessage(tempMessage);
                     }
                 }
@@ -50,14 +58,15 @@ public class ConnectionToServer implements Runnable {
             @Override
             public void run() {
                 while (true) {
-                    ClientMessage tempMessage = null;
+                    Message tempMessage = null;
                     try {
-                        tempMessage = (ClientMessage) objIn.readObject();
+                        tempMessage = (Message) objIn.readObject();
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
                     }
+
                     printMessage(tempMessage);
 
                 }
@@ -67,26 +76,45 @@ public class ConnectionToServer implements Runnable {
 
     }
 
-    public void printMessage(ClientMessage message) {
+    private void processingMessage(Message message) {
+        switch (message.getMessageType()) {
+            case SERVER:
+                System.err.printf("Server message: %s", message.getMessage());
+                break;
+            case AUTH:
+                break;
+            case CLIENT:
+                System.out.println(message.getNickname() + ": " + message.getMessage());
+                break;
+            case ERROR:
+                System.err.println(message.getMessage());
+                break;
+            case SYSTEM:
+
+                break;
+        }
+    }
+
+    public void printMessage(Message message) {
+
+
         System.out.println(message.getNickname() + ": " + message.getMessage());
     }
 
-    public void sendMessage(ClientMessage message) {
+    public void sendMessage(Message message) {
         try {
             objOut.writeObject(message);
             objOut.flush();
-            System.out.println("Otpravleno!");
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("ошибка потока вывода объекта");
         }
     }
 
-    public ClientMessage getMessage() {
-        ClientMessage temp;
-        System.err.println("into getMessage");
+    public Message getMessage() {
+        Message temp;
         try {
-            temp = (ClientMessage) objIn.readObject();
+            temp = (Message) objIn.readObject();
             return temp;
 
         } catch (IOException e) {
@@ -101,14 +129,14 @@ public class ConnectionToServer implements Runnable {
 
     private void createStreams() {
         try {
-            socket = new Socket(properties.getInetAddress(), properties.getServerInternetPort());
+            socket = new Socket(properties.getInetAddress(), properties.getInetPort());
             this.input = socket.getInputStream();
             this.out = socket.getOutputStream();
 
             this.objOut = new ObjectOutputStream(out);
             this.objIn = new ObjectInputStream(input);
         } catch (IOException e) {
-            System.out.println("Потоки клиента не создались");
+            System.err.println("Потоки клиента не создались");
             e.printStackTrace();
         }
     }

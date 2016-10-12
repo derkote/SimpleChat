@@ -1,6 +1,7 @@
 package ServerSide;
 
-import ServerSide.Message.ClientMessage;
+import ServerSide.Message.Message;
+import org.jdom2.JDOMException;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,7 +14,7 @@ public class SimpleServer {
     private ServerSocket socket;
     private int countOfClients;
     private int idid;
-    private PropertiesInternetConnection properties;
+    private Properties properties;
     private ConnectionPool connectionToClientMap;
 
     public static ConnectionToClient getConnectionById(int id) {
@@ -31,29 +32,34 @@ public class SimpleServer {
         return result;
     }
 
-    public PropertiesInternetConnection getProperties() {
+    public Properties getProperties() {
         return properties;
     }
 
-    public SimpleServer() {
+    public SimpleServer() throws IOException, JDOMException {
         idid = 0;
         countOfClients = 0;
-        properties = new PropertiesInternetConnection();
+        properties = new Properties();
         try {
-            socket = new ServerSocket(properties.getServerInternetPort());
+            socket = new ServerSocket(properties.getInetPort());
         } catch (IOException e) {
             e.printStackTrace();
         }
         connectionToClientMap = ConnectionPool.getInstance();
     }
 
-    protected boolean addClient() throws IOException {
+    protected boolean addClient() throws IOException, TooManyConnectionException {
         System.err.println("addClient");
         idid++;
-        ConnectionToClient<ClientMessage> tempConnection = new ConnectionToClient(socket, idid);
+        ConnectionToClient<Message> tempConnection = new ConnectionToClient(socket, idid);
         System.out.println(tempConnection);
         if (tempConnection.isRunned()) {
             System.err.println("addClient - isRunned");
+            if (connectionToClientMap.size() >= properties.getMaxConnection()) {
+//                tempConnection.sendMessage("Нет свободных мест на сервере");
+                tempConnection.setRunned(false);
+                throw new TooManyConnectionException("Количество подключенных пользователей ограниченно: " + properties.getMaxConnection());
+            }
             connectionToClientMap.put(tempConnection.getId(), tempConnection);
             countOfClients++;
             new Thread(tempConnection).start();
@@ -63,7 +69,6 @@ public class SimpleServer {
 
     public void start() throws IOException {
         System.err.println("start");
-        //startKillerDeadConnectionToClient();
         startAdderNewConnection();
     }
 
@@ -106,6 +111,8 @@ public class SimpleServer {
             addClient();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (TooManyConnectionException e) {
+            e.printStackTrace();
         }
         while (true) {
             if (countOfClients == connectionToClientMap.size()) {
@@ -121,5 +128,12 @@ public class SimpleServer {
 
 
 
+
 }
 
+class TooManyConnectionException extends Exception {
+
+    public TooManyConnectionException(String message) {
+        super(message);
+    }
+}

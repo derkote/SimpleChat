@@ -1,8 +1,7 @@
 package ServerSide;
 
 import Client.Account;
-import ServerSide.Message.AbstractMessage;
-import ServerSide.Message.ClientMessage;
+import ServerSide.Message.Message;
 
 
 import java.io.*;
@@ -27,16 +26,11 @@ public class ConnectionToClient<M> implements Runnable {
     }
 
     public boolean isRunned() {
-        /*try {
-            if (isRunned()) {
-                if (inputStream.available() < 1000000)
-                    return true;
-            }
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;*/
         return runned;
+    }
+
+    public void setRunned(boolean set) {
+        runned = set;
     }
 
     public ConnectionToClient(ServerSocket serverSocket, int id) {
@@ -44,6 +38,7 @@ public class ConnectionToClient<M> implements Runnable {
         this.messagePool = MessagePool.getInstance();
         this.id = id + 1;
         try {
+
             socket = this.serverSocket.accept();
             System.err.println("Create new connection id:" + id);
             runned = true;
@@ -65,10 +60,6 @@ public class ConnectionToClient<M> implements Runnable {
             } catch (EOFException e) {
                 e.printStackTrace();
             }
-
-            /*Scanner inputScanner = new Scanner(inputStream);
-            PrintWriter outputWriter = new PrintWriter(outputStream, true);*/
-
             System.out.println("Отправляем последние десять сообщений");
             ArrayList<M> lastTenMessage = messagePool.getLast();
             for (int i = 0; i < lastTenMessage.size(); i++) {
@@ -76,44 +67,26 @@ public class ConnectionToClient<M> implements Runnable {
             }
             Account acc = new Account();
             acc.setNickName("Server");
-            sendMessage((M) new ClientMessage(acc, "Hi! Please enter a message. Enter 'exit' to exit"));
-                /*
-                * Избавляемся от "мусорной" информации
-                * */
-            /*byte[] b = new byte[100];
-            //b[1] = inputStream.readByte();\
-            is.read(b);
-            System.out.println(b);*/
-
+            sendMessage((M) new Message(acc, "Hi! Please enter a message. Enter 'exit' to exit"));
 
             boolean isMessagetail = false;
-            ClientMessage tempMessage = null;
-            //ХУЙ ЗНАЕТ РАБОТАЕТ ЛИ?
-
-//            while (!isMessagetail && inputStream.available()>0) {
-                while (!isMessagetail) {
-                    try {
-                        tempMessage = (ClientMessage) inputStream.readObject();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    if (tempMessage.getMessage().trim().equalsIgnoreCase("exit")) {
-                        System.out.println("Приняли команду на выход");
-                        isMessagetail = true;
-                        runned = false;
-                    }
-
-                    System.out.println(tempMessage.getNickname() + ": " + tempMessage);
-                    messagePool.addMessage(tempMessage);
-                    tempMessage.setMessage(tempMessage.getMessage());
-                    ConnectionPool.getInstance().sendMessageToAll(tempMessage);
-//                outputWriter.println("Echo: " + tempMessage);
-//                отправляем не одному в ответ, а всем
-                    System.out.println("sendMEssageToAll");
-
-
+            Message tempMessage = null;
+            while (!isMessagetail) {
+                try {
+                    tempMessage = (Message) inputStream.readObject();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
                 }
-
+                if (tempMessage.getMessage().trim().equalsIgnoreCase("exit")) {
+                    System.out.println("Приняли команду на выход");
+                    isMessagetail = true;
+                    runned = false;
+                }
+                System.out.println(tempMessage.getNickname() + ": " + tempMessage);
+                messagePool.addMessage(tempMessage);
+                tempMessage.setMessage(tempMessage.getMessage());
+                ConnectionPool.getInstance().sendMessageToAll(tempMessage);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -123,7 +96,6 @@ public class ConnectionToClient<M> implements Runnable {
                 e.printStackTrace();
             }
             runned = false;
-            System.err.println("Connection with client are closed");
         }
     }
 

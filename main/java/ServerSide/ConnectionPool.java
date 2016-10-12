@@ -1,9 +1,7 @@
 package ServerSide;
 
-import ServerSide.Message.AbstractMessage;
-import ServerSide.Message.ClientMessage;
+import ServerSide.Message.Message;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,9 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ConnectionPool<M> {
     private volatile Map<Integer, ConnectionToClient> connectionToClientMap;
-    private static ConnectionPool ourInstance = new ConnectionPool<ClientMessage>();
+    private static ConnectionPool ourInstance = new ConnectionPool<Message>();
 
-    public static synchronized ConnectionPool getInstance() {
+    public static ConnectionPool getInstance() {
         return ourInstance;
     }
 
