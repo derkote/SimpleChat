@@ -1,13 +1,14 @@
 package ServerSide;
 
-
 import org.jdom2.JDOMException;
-
 import java.io.IOException;
-import java.util.Scanner;
 
 /**
- * Created by derkote on 16.09.2016.
+ * Серверная часть простого текстового консольного чата
+ * Кодовое имя ГадкийIRC
+ * Точка входа
+ * @author derkote
+ * @version 0.1
  */
 public class Main {
 

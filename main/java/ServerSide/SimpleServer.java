@@ -7,15 +7,23 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 /**
- * Created by derkote on 16.09.2016.
+ * Управляет созданием новых подключений, их валидацией и добавлением в пул
+ * @author derkote
+ * @version 0.0.0.0.1
  */
 public class SimpleServer {
 
+
     private ServerSocket socket;
+    /** Количество подключенных клиентов / Кол-во соединений */
     private int countOfClients;
+    /** id клиента */
     private int idid;
+    /** Контейнер с параметрами */
     private Properties properties;
+    /** Контейнер с соединениями*/
     private ConnectionPool connectionToClientMap;
+
 
     public static ConnectionToClient getConnectionById(int id) {
         ConnectionToClient result = null;
@@ -31,11 +39,14 @@ public class SimpleServer {
         }
         return result;
     }
-
     public Properties getProperties() {
         return properties;
     }
 
+
+    /**
+    * Конструктор класса
+    * */
     public SimpleServer() throws IOException, JDOMException {
         idid = 0;
         countOfClients = 0;
@@ -48,11 +59,17 @@ public class SimpleServer {
         connectionToClientMap = ConnectionPool.getInstance();
     }
 
+
+    /**
+    * Создает и добавляет в пул новое подключение
+     * @return успех создания потока
+     * @throws IOException ошибка создания соединения
+     * @throws TooManyConnectionException количество подключенных пользователей ограниченно
+    * */
     protected boolean addClient() throws IOException, TooManyConnectionException {
         System.err.println("addClient");
         idid++;
         ConnectionToClient<Message> tempConnection = new ConnectionToClient(socket, idid);
-        System.out.println(tempConnection);
         if (tempConnection.isRunned()) {
             System.err.println("addClient - isRunned");
             if (connectionToClientMap.size() >= properties.getMaxConnection()) {
@@ -67,12 +84,13 @@ public class SimpleServer {
         } else return false;
     }
 
+
     public void start() throws IOException {
         System.err.println("start");
         startAdderNewConnection();
     }
 
-
+    @Deprecated
     private void startKillerDeadConnectionToClient() {
         System.err.println("startKiller");
         new Thread(new Runnable() {
@@ -99,12 +117,17 @@ public class SimpleServer {
         }).start();
     }
 
+    @Deprecated
     private void killConnection(int id) {
         System.err.println("killConnection");
         connectionToClientMap.remove(id);
         countOfClients--;
     }
 
+
+    /**
+    * Добавляет подключения, если заканчиваются свободные
+    * */
     private void startAdderNewConnection() {
         System.err.println("startAdder");
         try {
@@ -131,6 +154,9 @@ public class SimpleServer {
 
 }
 
+/**
+ * Возникает при попытке создания подключений больше разрешенного количества
+ */
 class TooManyConnectionException extends Exception {
 
     public TooManyConnectionException(String message) {

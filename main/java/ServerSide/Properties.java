@@ -16,15 +16,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by derkote on 16.09.2016.
+ * Хранит необходимые параметры
+ * @author derkote
+ * @version 0.1
  */
 public class Properties {
 
+    /** Файл с настройками */
     private File propertyFile = new File(String.valueOf(getClass().getClassLoader().getResource("property.xml")));
+    /** Контейнер с именами значений и значениями*/
     private Map<PropertyName, Object> propertyContainer;
+    /** Порт для подключения*/
     private int serverInternetPort;
+    /** Максимальное количество одновременных соединений*/
     private int maxConnection;
+    /** IP адрес сервера*/
     private InetAddress inetAddress;
+
 
     public int getMaxConnection() {
         return maxConnection;
@@ -35,6 +43,12 @@ public class Properties {
     public InetAddress getInetAddress() {
         return inetAddress;
     }
+    /**
+     * Виды параметров
+     * INETADRESS    - ip сервера
+     * INETPORT      - порт
+     * MAXCONNECTION - кол-во одновременных подключений
+    * */
     public enum PropertyName {
         INETADRESS,
         INETPORT,
@@ -42,19 +56,25 @@ public class Properties {
     }
 
 
-    public void reloadProperty() throws JDOMException, IOException {
-        propertyContainer = loadFromXMLFile(propertyFile);
-        loadProperties();
-    }
-
-
+    /**
+     * Конструктор класса
+     * Читает значение из xml и распихивает по полям класса
+     *
+     * @throws JDOMException ошибка парсинга XML из файла
+     * @throws IOException ошибки чтения файла
+    * */
     public Properties() throws IOException, JDOMException {
         System.out.println(getClass().getClassLoader().getResource("property.xml"));
         propertyContainer = loadFromXMLFile(propertyFile);
         loadProperties();
-
     }
 
+    /**
+     * Читает значения из файла, загружает в контейнер и возвращает его
+     * @param file файл из которого грузим настройки
+     * @throws JDOMException ошибка парсинга XML из файла
+     * @throws IOException ошибки чтения файла
+     * */
     private Map<PropertyName, Object> loadFromXMLFile(File file) throws JDOMException, IOException {
         SAXBuilder jdomBuilder = new SAXBuilder();
         Document jdomDocument = jdomBuilder.build(file.getPath());
@@ -67,6 +87,11 @@ public class Properties {
         return tempContainer;
     }
 
+
+    /**
+     * Записывает значения настроек из контейнера в поля класса
+     * @throws UnknownHostException значение INETADRESS загруженное из файла не может быть распознано
+     */
     private void loadProperties() throws UnknownHostException {
         serverInternetPort =  Integer.parseInt((String)propertyContainer.get(PropertyName.INETPORT));
         inetAddress = InetAddress.getByName((String) propertyContainer.get(PropertyName.INETADRESS));

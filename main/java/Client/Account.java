@@ -3,16 +3,17 @@ package Client;
 import java.io.Serializable;
 
 /**
- * Created by derkote on 05.10.2016.
+ * Контейнер с информацией о отправителе сообщения
+ * @author derkote
+ * @version 0.1
+ * TODO: хранить пароль в хешированном виде
  */
 public class Account implements Serializable {
     private String nickName;
     private String password;
+    public int versionID = 1;
 
 
-    public String getPassword() {
-        return password;
-    }
     public void setPassword(String password) {
         this.password = password;
     }
@@ -22,8 +23,6 @@ public class Account implements Serializable {
     public void setNickName(String nickName) {
         this.nickName = nickName;
     }
-
-
 
 
     public Account() {

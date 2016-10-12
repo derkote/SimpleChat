@@ -9,16 +9,26 @@ import java.net.Socket;
 import java.util.Scanner;
 
 /**
- * Created by derkote on 17.09.2016.
+ * Подключение к серверу
+ * Отправляет на сервер сообщения
+ * Принимает сообщения от сервера
+ * @author derkote
+ * @version 0.1
  */
 public class ConnectionToServer implements Runnable {
+    /** Контейнер с параметрами */
     private Properties properties;
+    /** Через него поднимаем соединение */
     private Socket socket;
     private InputStream input;
     private OutputStream out;
+    /** Поток ввода сообщенийц */
     private ObjectInputStream objIn;
+    /** Поток вывода сообщений */
     private ObjectOutputStream objOut;
+    /** Информация об отправителе */
     private Account account;
+
 
     public ConnectionToServer(Account account) throws IOException, JDOMException {
         properties = new Properties();
@@ -27,9 +37,9 @@ public class ConnectionToServer implements Runnable {
 
     @Override
     public void run() {
-        //Создаем потоки ввода\вывода
+        /** Создаем потоки ввода-вывода */
         createStreams();
-
+        /** TODO: Реализовать отправку информации об отправителе один раз!  */
         /*try {
             objOut.writeObject(account);
             objOut.flush();
@@ -40,6 +50,7 @@ public class ConnectionToServer implements Runnable {
         //Читаем ввод пользователя
 
 
+        /** Поток считывает сообщения и отправляет на сервер */
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -54,6 +65,9 @@ public class ConnectionToServer implements Runnable {
             }
         }).start();
 
+        /**
+         * Поток принимает сообщения с сервера
+         * Выводит их */
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -66,41 +80,53 @@ public class ConnectionToServer implements Runnable {
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-
                     printMessage(tempMessage);
-
                 }
-
             }
         }).start();
 
     }
 
+    /**
+     * Обработка сообщений в зависимости от типа
+     * @param message отрабатываемое сообщение
+     * TODO: реализовать механизм типов сообщений после обновления на стороне сервера
+     * */
     private void processingMessage(Message message) {
         switch (message.getMessageType()) {
+            /** Серверное */
             case SERVER:
                 System.err.printf("Server message: %s", message.getMessage());
                 break;
+            /** Авторизиция*/
             case AUTH:
                 break;
+            /** Клиентское */
             case CLIENT:
-                System.out.println(message.getNickname() + ": " + message.getMessage());
+                printMessage(message);
                 break;
+            /** Ошибка */
             case ERROR:
                 System.err.println(message.getMessage());
                 break;
+            /** Системное */
             case SYSTEM:
-
                 break;
         }
     }
 
+    /**
+     * Выводит сообщение в консоль
+     * @param message выводимое сообщение
+     */
     public void printMessage(Message message) {
-
-
         System.out.println(message.getNickname() + ": " + message.getMessage());
     }
 
+    /**
+     * Отправляет сообщение на сервер
+     * @param message отправляемое сообщение
+     */
     public void sendMessage(Message message) {
         try {
             objOut.writeObject(message);
@@ -110,6 +136,7 @@ public class ConnectionToServer implements Runnable {
             System.err.println("ошибка потока вывода объекта");
         }
     }
+
 
     public Message getMessage() {
         Message temp;
@@ -127,6 +154,10 @@ public class ConnectionToServer implements Runnable {
         return null;
     }
 
+
+    /**
+     * Создает потоки ввода-вывода
+     */
     private void createStreams() {
         try {
             socket = new Socket(properties.getInetAddress(), properties.getInetPort());

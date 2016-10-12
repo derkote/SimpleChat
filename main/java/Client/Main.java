@@ -6,11 +6,19 @@ import java.io.IOException;
 import java.util.Scanner;
 
 /**
- * Created by derkote on 16.09.2016.
+ * Клиент гадкогоIRC'a
+ * @author derkote
+ * @version 0.1
+ * TODO: Реализовать задуманный гуй
  */
 public class Main {
 
-
+    /**
+     * Точка входа
+     * Считывает данные клиента для создания записи аккаунта
+     * Запускает подключение к серверу
+     * @param args параметры
+     */
     public static void main(String[] args) {
         Account account = new Account();
         Scanner in = new Scanner(System.in);

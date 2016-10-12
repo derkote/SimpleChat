@@ -1,18 +1,19 @@
 package ServerSide;
 
 import ServerSide.Message.Message;
-
-
 import java.util.ArrayList;
 
 /**
- * Created by derkote on 05.10.2016.
+ * Синглтон
+ * Контейнер хранит сообщения клиентов типа М
+ * @author derkote
+ * @version 0.1
  */
 public class MessagePool<M> {
+
+    /** Список всех сообщений */
     private volatile ArrayList<M> messagePool;
-
     private static MessagePool ourInstance = new MessagePool<Message>();
-
     public static synchronized MessagePool getInstance() {
         return ourInstance;
     }
@@ -26,6 +27,7 @@ public class MessagePool<M> {
         }*/
     }
 
+
     public int size() {
         return messagePool.size();
     }
@@ -34,6 +36,10 @@ public class MessagePool<M> {
         messagePool.add(message);
     }
 
+    /**
+     * Возвращает последние сообщения, максимум 10 штук
+     * @return список сообщений типа M
+     * */
     public synchronized ArrayList<M> getLast() {
         ArrayList<M> temp;
         int length = messagePool.size();
@@ -49,7 +55,6 @@ public class MessagePool<M> {
                 temp.add(10-i, messagePool.get(length - i));
             }
         }
-
         return temp;
     }
 

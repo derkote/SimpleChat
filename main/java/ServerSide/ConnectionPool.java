@@ -6,9 +6,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by derkote on 04.10.2016.
+ * Синглтон
+ * Контейнер хранит все текущие подключения клиентов
+ * Следит за состоянием подключений и удаляет неактивные
+ * Выполняет функцию почтового хаба, рассылая сообщения по всем клиентам
+ * @autor derkote
+ * @version 0.1
  */
 public class ConnectionPool<M> {
+    /** Коллекция всех текущих подключений */
     private volatile Map<Integer, ConnectionToClient> connectionToClientMap;
     private static ConnectionPool ourInstance = new ConnectionPool<Message>();
 
@@ -16,17 +22,27 @@ public class ConnectionPool<M> {
         return ourInstance;
     }
 
+    /**
+     * Добавляет подключение в контейнер, возвращает успешность выполнения
+     * @param id id подключения
+     * @param connetion подключение*/
     public synchronized boolean put(int id, ConnectionToClient connetion) {
         connectionToClientMap.put(id, connetion);
         return connectionToClientMap.containsKey(id);
     }
 
+    /**
+     * Возвращает подключение по идентификатору
+     * @param id идентификатор требуемого подключения */
     public ConnectionToClient get(int id) {
         if (connectionToClientMap.containsKey(id))
             return connectionToClientMap.get(id);
         else return null;
     }
 
+    /**
+     * Удаляет подключение из контейнера, возвращает успешность выполнения
+     * @param id идентификатор удаляемого подключения */
     public synchronized boolean remove(int id) {
         if (connectionToClientMap.containsKey(id))
             connectionToClientMap.remove(id);
@@ -39,11 +55,20 @@ public class ConnectionPool<M> {
         return connectionToClientMap.size();
     }
 
+    /**
+     * Инициализируем колелкцию в которой храним подключения
+     * TODO: протестировать различные значения loadfactor'a
+     * Запускаем убийцу невалидных потоков
+     */
     private ConnectionPool() {
         this.connectionToClientMap = new ConcurrentHashMap<>(10, 0.8f);
         new ConnectionKiller();
     }
 
+    /**
+     * Рассылает сообщение по всем поключениям в пуле
+     * @param message сообщение которое необходимо разослать
+     */
     public synchronized void sendMessageToAll(M message) {
         System.out.println(connectionToClientMap.size());
         for (ConnectionToClient client : connectionToClientMap.values()) {
@@ -55,7 +80,10 @@ public class ConnectionPool<M> {
     }
 
 
-
+    /**
+     * Отдельный поток следит за валидностью подключений в пуле
+     * Если подключение не работает, то удаляет его из пула
+     */
     class ConnectionKiller {
         public ConnectionKiller() {
             new Thread(new Runnable() {
@@ -67,7 +95,6 @@ public class ConnectionPool<M> {
                                 System.out.println("killing situation");
                                 remove(integerConnectionToClientEntry.getKey());
                             }
-
                         }
 //                    System.out.println("killer is worked!!");
                         try {
